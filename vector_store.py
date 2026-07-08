@@ -1,47 +1,38 @@
-# import faiss
-# import numpy as np
-
-# index = None
-# stored_chunks = []
-
-# def create_index(embeddings, chunks):
-#     global index, stored_chunks 
-
-#     dim = len(embeddings[0])
-#     index = faiss.IndexFlatL2(dim)#Flat Index (Exact search)
-
-#     index.add(np.array(embeddings))
-#     stored_chunks = chunks
-
-
-# def search(query_embedding, k=3):
-#     global index, stored_chunks
-
-#     D, I = index.search(query_embedding, k)
-#     results = [stored_chunks[i] for i in I[0]]
-#     return results
-
-#-------------------Using PGVector------------------#
-
 import numpy as np
-from sqlalchemy.orm import Session
-from models import Document
 
-def store_embeddings(db: Session, embeddings, chunks):
-    for emb, chunk in zip(embeddings, chunks):
-        doc = Document(
-            content=chunk,
-            embedding=emb.tolist()
-        )
-        db.add(doc)
+_stored_embeddings = []
+_stored_chunks = []
 
-    db.commit()
 
-def search_similar(db: Session, query_embedding, k=3):
-    query_vector = query_embedding.tolist()[0]
+def create_index(embeddings, chunks):
+    global _stored_embeddings, _stored_chunks
+    _stored_embeddings = [np.array(emb, dtype=float) for emb in embeddings]
+    _stored_chunks = list(chunks)
 
-    results = db.query(Document).order_by(
-        Document.embedding.l2_distance(query_vector)# Euclidean distance
-    ).limit(k).all()
 
-    return [r.content for r in results]
+def search(query_embedding, k=3):
+    global _stored_embeddings, _stored_chunks
+
+    if not _stored_embeddings:
+        return []
+
+    query_vector = np.array(query_embedding, dtype=float).reshape(-1)
+
+    def normalize(vec):
+        norm = np.linalg.norm(vec)
+        return vec / norm if norm > 0 else vec
+
+    query_vector = normalize(query_vector)
+    stored_vectors = np.array([normalize(vec) for vec in _stored_embeddings])
+    scores = stored_vectors @ query_vector
+    top_indices = np.argsort(scores)[::-1][:k]
+
+    return [_stored_chunks[i] for i in top_indices]
+
+
+def store_embeddings(db, embeddings, chunks):
+    create_index(embeddings, chunks)
+
+
+def search_similar(db, query_embedding, k=3):
+    return search(query_embedding, k=k)
