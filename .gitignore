@@ -1,0 +1,43 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment files
+.env
+.env.*
+
+# Jupyter / notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE / editor settings
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Database / local data
+*.sqlite3
+*.db
+
+# Model / vector artifacts (if generated locally)
+*.bin
+*.pt
+*.pkl
+*.joblib
+
+# Build / packaging
+build/
+dist/
+*.egg-info/

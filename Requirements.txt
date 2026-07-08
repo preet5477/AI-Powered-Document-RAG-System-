@@ -1,0 +1,5 @@
+pip install fastapi uvicorn psycopg2-binary sentence-transformers
+pip install pypdf pandas openpyxl
+pip install langchain-text-splitters sentence-transformers faiss-cpu
+pip install python-docx
+pip install psycopg2-binary sqlalchemy pgvector
